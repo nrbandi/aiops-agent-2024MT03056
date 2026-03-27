@@ -80,6 +80,7 @@ def run_pipeline(
     anomalies_detected = 0
 
     try:
+        _last_anomalous_window = []
         while True:
             cycle += 1
             if max_cycles and cycle > max_cycles:
@@ -124,7 +125,13 @@ def run_pipeline(
             )
 
             # ── DECIDE — Rule Engine ──────────────────────────────────
-            matches = rule_eng.match(event, window)
+            # Cache the window that triggered the anomaly
+            # so sustained events use the correct metric values
+            if zscore_result.get("passed_gate") or if_result.get("is_anomaly"):
+                _last_anomalous_window = window
+
+            # ── DECIDE — Rule Engine ──────────────────────────────────
+            matches = rule_eng.match(event, _last_anomalous_window or window)
 
             # ── DECIDE — Recommendation Engine ───────────────────────
             recommendations = rec_eng.generate(
@@ -201,7 +208,7 @@ def _synthetic_window(config: dict, cycle: int) -> list:
     anomaly = cycle % 5 == 0  # Anomaly every 5th cycle
 
     for i in range(window_size):
-        ts = datetime.datetime.utcnow().isoformat() + "Z"
+        ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
         if anomaly:
             # CPU saturation + memory pressure pattern (PB007)
             sample = {

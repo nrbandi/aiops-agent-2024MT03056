@@ -31,7 +31,16 @@ class IsolationForestScorer:
     """
 
     def __init__(self, config: dict):
-        self.warmup_windows = config["observe"]["warmup_windows"]
+        demo_mode = config["act"]["demo_mode"]
+        self.warmup_windows = (
+            config["observe"]["warmup_windows_demo"]
+            if demo_mode
+            else config["observe"]["warmup_windows"]
+        )
+        logger.info(
+            f"Warmup mode: {'DEMO' if demo_mode else 'PRODUCTION'} "
+            f"({self.warmup_windows} windows)"
+        )
         self.contamination = config["analyze"]["isolation_forest"]["contamination"]
         self.n_estimators = config["analyze"]["isolation_forest"]["n_estimators"]
         self.random_state = config["analyze"]["isolation_forest"]["random_state"]

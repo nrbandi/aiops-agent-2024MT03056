@@ -26,11 +26,19 @@ class ZScoreFilter:
     """
 
     def __init__(self, config: dict):
-        self.threshold = config["analyze"]["zscore_threshold"]
+        demo_mode = config["act"]["demo_mode"]
+        self.threshold = (
+            config["analyze"]["zscore_threshold_demo"]
+            if demo_mode
+            else config["analyze"]["zscore_threshold"]
+        )
         self.window_size = config["observe"]["window_size"]
-        # Rolling history per metric for mean/std computation
         self._history = {m: deque(maxlen=200) for m in METRICS}
-        logger.info(f"ZScoreFilter initialised — threshold=±{self.threshold}")
+        logger.info(
+            f"ZScoreFilter initialised — "
+            f"threshold=±{self.threshold} "
+            f"({'DEMO' if demo_mode else 'PRODUCTION'})"
+        )
 
     def update_history(self, window: list) -> None:
         """Feed latest window samples into rolling history."""
@@ -47,7 +55,7 @@ class ZScoreFilter:
         zscores = {}
         for m in METRICS:
             history = list(self._history[m])
-            if len(history) < 10:
+            if len(history) < 3:
                 # Insufficient history — skip flagging (warm-up)
                 zscores[m] = 0.0
                 continue
