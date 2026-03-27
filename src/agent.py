@@ -195,37 +195,35 @@ def _print_recommendation(entry: dict, cycle: int) -> None:
 def _synthetic_window(config: dict, cycle: int) -> list:
     """
     Generate synthetic metric windows for demo mode.
-    Injects realistic anomaly patterns every 5 cycles
-    so the viva examiner sees the full pipeline fire.
-    Patterns match the semi-synthetic dataset described
-    in Section 6.2 of the dissertation.
+    Uses seeded random for deterministic, repeatable demo runs.
+    Injects anomaly pattern every 5th cycle after warmup.
+    Patterns match Section 6.2 semi-synthetic dataset methodology.
     """
     import random
     import datetime
 
+    rng = random.Random(cycle * 42)  # deterministic per cycle
     window_size = config["observe"]["window_size"]
     window = []
-    anomaly = cycle % 5 == 0  # Anomaly every 5th cycle
+    anomaly = (cycle % 5 == 0) and (cycle >= 10)  # after warmup only
 
     for i in range(window_size):
         ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
         if anomaly:
-            # CPU saturation + memory pressure pattern (PB007)
             sample = {
                 "timestamp": ts,
-                "cpu_percent": random.uniform(85.0, 97.0),
-                "mem_percent": random.uniform(82.0, 94.0),
-                "disk_io_mbps": random.uniform(20.0, 60.0),
-                "net_mbps": random.uniform(50.0, 200.0),
+                "cpu_percent": rng.uniform(85.0, 97.0),
+                "mem_percent": rng.uniform(82.0, 94.0),
+                "disk_io_mbps": rng.uniform(20.0, 60.0),
+                "net_mbps": rng.uniform(50.0, 200.0),
             }
         else:
-            # Normal operational baseline
             sample = {
                 "timestamp": ts,
-                "cpu_percent": random.uniform(15.0, 45.0),
-                "mem_percent": random.uniform(30.0, 55.0),
-                "disk_io_mbps": random.uniform(5.0, 40.0),
-                "net_mbps": random.uniform(10.0, 100.0),
+                "cpu_percent": rng.uniform(15.0, 40.0),
+                "mem_percent": rng.uniform(30.0, 50.0),
+                "disk_io_mbps": rng.uniform(5.0, 30.0),
+                "net_mbps": rng.uniform(10.0, 80.0),
             }
         window.append(sample)
     return window
