@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.pkl
+*.joblib
+
+# Runtime logs (too large / not source)
+data/logs/*.json
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+*.swp
+
+# VS Code — commit settings.json but ignore local overrides
+.vscode/*
+!.vscode/settings.json
