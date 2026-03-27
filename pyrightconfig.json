@@ -1,0 +1,12 @@
+{
+    "pythonVersion": "3.12",
+    "pythonPlatform": "Linux",
+    "venvPath": ".",
+    "venv": ".venv",
+    "include": [
+        "src"
+    ],
+    "extraPaths": [
+        "."
+    ]
+}
